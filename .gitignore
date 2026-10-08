@@ -1,0 +1,51 @@
+# Python bytecode and cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Build and packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Virtual/env folders
+.venv/
+venv/
+env/
+
+# Conda
+.conda/
+
+# Tooling cache
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.ipynb_checkpoints/
+
+# Coverage
+.coverage
+htmlcov/
+
+# IDE/editor
+.vscode/
+.idea/
+.DS_Store
+
+# Secrets and local env
+.env
+.env.*
+!.env.example
+
+# Logs and outputs
+logs/
+output/
+
+# Notebook and temporary exports
+*.nbconvert.ipynb
+*.tmp
+
+# Optional R artifacts if generated locally
+.Rhistory
+.RData
+.Rproj.user/

@@ -1,0 +1,33 @@
+name: rq2-nlp
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.11
+  - pip
+  - numpy
+  - pandas
+  - scipy
+  - statsmodels
+  - scikit-learn
+  - matplotlib
+  - seaborn
+  - openpyxl
+  - spacy
+  - spacy-transformers
+  - textstat
+  - pingouin
+  - transformers>=4.41,<5
+  - sentencepiece
+  - sentence-transformers>=3.0
+  - huggingface_hub>=0.34,<1.0
+  - umap-learn
+  - hdbscan
+  - bertopic
+  - plotly
+  - jupyterlab
+  - ipykernel
+  - pyyaml
+  - pytest
+  - ruff
+  - black
