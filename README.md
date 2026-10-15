@@ -1,84 +1,112 @@
-# analysesStudy1Python
+# Adversarial Attacks Reveal Divergent Deception Competence in Humans and Generative Language Models
 
-Python workspace for RQ2 focused on data preprocessing and NLP feature generation.
+[![arXiv](https://img.shields.io/badge/arXiv-2610.13363-b31b1b.svg)](https://arxiv.org/abs/2610.13363)
 
-Statistical analyses are performed in R; this repository prepares clean, documented artifacts for that stage.
+Code and data for the computational text analyses reported in:
 
-## Project goals
+> Pfründer, L., Loconte, R., Verschuere, B., & Kleinberg, B. (2026). Adversarial attacks reveal divergent deception competence in humans and generative language models. *arXiv preprint arXiv:2610.13363*. https://doi.org/10.48550/arXiv.2610.13363
 
-- Ingest and clean study datasets.
-- Build reproducible NLP preprocessing pipelines.
-- Generate analysis-ready outputs to be consumed by R scripts.
-- Keep a clear separation between source data, transformation logic, and generated outputs.
+## About
+
+The repository contains the Python analysis pipeline behind these results:
+
+1. **Linguistic features** — Scoring 30 features per original and modified statements (26 DeCLaRatiVE deception features plus four part-of-speech features). This was used to investigate how language models and humans modified statements
+2. **Strategy labeling** — BERTopic topic modeling of participants' self-reported attack strategies, followed by assigning strategy codes (authenticity, emotion, rephrasing, details).
+3. **Classifier training** — logistic regression, random forest, gradient boosting, and SVM classifiers trained to distinguish original from modified statements using the 30 linguistic features.
+
+All other analyses reported in the manuscript were conducted in R and are not part of this repository.
 
 ## Repository structure
 
-- `data/`: input datasets used for preprocessing.
-- `linguisticFeatures/`: notebooks and resources for linguistic feature extraction.
-- `notebooks/`: exploratory notebooks for method checks and prototyping.
-- `output/`: generated artifacts (ignored by git).
-- `environment.yml`: reproducible Conda environment definition.
+```text
+├── data/
+│   ├── combined_best_attempt.csv        # Best attempt per attack sequence, incl. self-reported strategy
+│   └── combined_long_liwc.csv           # All texts (original + modification) with LIWC-22 scores
+├── linguisticFeatures/
+│   ├── linguistic_features.ipynb                  # Feature extraction and statistical comparison
+│   ├── Brysbaert concreteness scoring.xlsx        # Concreteness ratings (Brysbaert et al., 2014)
+│   └── Concreteness ratings for 40 thousand generally known English word lemmas.pdf
+├── strategyLabeling/
+│   └── strategy_labeling.ipynb           # Strategy topic modeling and coding
+├── classifierTraining/
+│   └── classifier_training.ipynb         # Classifier training and evaluation
+├── output/                              # Where every notebook stores its results
+├── environment.yml                      # Conda environment definition
+├── LICENSE
+└── README.md
+```
 
-## Environment setup (Miniconda)
+## Setup
 
-1. Install Miniconda (if needed): https://docs.conda.io/en/latest/miniconda.html
-2. From this repository root, create the environment:
+Requires [Miniconda](https://docs.conda.io/en/latest/miniconda.html) (or a full Anaconda installation).
 
 ```bash
 conda env create -f environment.yml
+conda activate deception-competence
+python -m spacy download en_core_web_trf   # required for Stage 1
 ```
 
-If the environment already exists and `environment.yml` changed:
+Optional — register a Jupyter kernel:
 
 ```bash
-conda env update -f environment.yml --prune
+python -m ipykernel install --user --name deception-competence --display-name "Python (deception-competence)"
 ```
 
-3. Activate it:
+The environment provides Python 3.11 with pandas, spaCy, textstat, pingouin, BERTopic, and scikit-learn (see `environment.yml` for the full list).
 
-```bash
-conda activate rq2-nlp
+## Reproducing the analyses
+
+1 and 2 are independent; 3 requires the output of 1.
+
+| Stage | Notebook | Input | Main outputs |
+| --- | --- | --- | --- |
+| 1. Linguistic features | `linguisticFeatures/linguistic_features.ipynb` | `data/combined_long_liwc.csv`, concreteness ratings | `output/combined_long_lingfeat.csv`, `output/combined_long_lingfeat_linked.csv` |
+| 2. Strategy labeling | `strategyLabeling/strategy_labeling.ipynb` | `data/combined_best_attempt.csv` | `output/combined_best_attempt_strategy.csv`, BERTopic topic-info tables |
+| 3. Classifier training | `classifierTraining/classifier_training.ipynb` | `output/combined_long_lingfeat_linked.csv` | `output/classifier_original_vs_modified.csv` |
+
+All generated output is written to `output/`.
+
+### Reproducibility notes
+
+- 3 fixes `SEED = 42` for the grouped train/test split, cross-validation, classifier training, and permutation importance.
+- To prevent leakage, the classifier evaluation splits the data by `statement_id`: the original statement and all of its modifications always fall on the same side of the split.
+- BERTopic (2) uses UMAP dimensionality reduction, which is stochastic, so exact topic assignments can vary slightly between runs. The final strategy labels (2, 5) were assigned after inspecting the top words and representative documents of each topic. For this part, the output of the notebook is saved.
+
+## Data
+
+- `data/combined_best_attempt.csv` — one row per attack sequence (best attempt): participant demographics, statement and attack metadata, and the self-reported `strategies` text analyzed in Stage 2.
+- `data/combined_long_liwc.csv` — one row per text: the original statement and the best modification of every attack sequence, with identifiers (`rewrite_id`, `statement_id`, `attack_modality`, `text_type`) and LIWC-22 scores (Boyd et al., 2022) used in Stage 1.
+- `linguisticFeatures/Brysbaert concreteness scoring.xlsx` — concreteness ratings for ~40,000 English word lemmas, used for the concreteness feature (Brysbaert, Warriner, & Kuperman, 2014).
+Concreteness reference:
+
+> Brysbaert, M., Warriner, A. B. & Kuperman, V. Concreteness ratings for 40 thousand generally known English word lemmas. Behav Res 46, 904–911 (2014).
+
+LIWC-22 reference: 
+
+> Boyd, R. L., Ashwini Ashokkumar, Seraj, S. & Pennebaker, J. W. The Development and Psychometric Properties of LIWC-22. https://doi.org/10.13140/RG.2.2.23890.43205 (2022) doi:10.13140/RG.2.2.23890.43205.
+
+
+## Citation
+
+If you use this code or data, please cite:
+
+```bibtex
+@misc{pfrunder2026adversarial,
+  author        = {Pfr{\"u}nder, Lucca and Loconte, Riccardo and Verschuere, Bruno and Kleinberg, Bennett},
+  title         = {Adversarial Attacks Reveal Divergent Deception Competence in Humans and Generative Language Models},
+  year          = {2026},
+  eprint        = {2610.13363},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CY},
+  doi           = {10.48550/arXiv.2610.13363},
+  url           = {https://arxiv.org/abs/2610.13363}
+}
 ```
 
-4. Optional: register kernel for notebooks:
+## License
 
-```bash
-python -m ipykernel install --user --name rq2-nlp --display-name "Python (rq2-nlp)"
-```
+This repository is released under the [Creative Commons Attribution 4.0 International License (CC-BY 4.0)](LICENSE), matching the license of the preprint.
 
-5. Install a spaCy English model (required for linguistic feature notebooks):
+## Contact
 
-```bash
-python -m spacy download en_core_web_trf
-```
-
-## Workflow
-
-1. Keep datasets in `data/` with clear naming.
-2. Use notebooks or scripts as needed for preprocessing/NLP steps.
-3. Write generated files to `output/`.
-4. Export analysis-ready files for downstream R analyses.
-
-## Linguistic Feature Pipeline
-
-Notebook-only implementation for combined LIWC/text features is available in:
-
-- `linguisticFeatures/combined_long_liwc_lingfeat.ipynb`
-
-This notebook:
-
-- reads `data/combined_long_liwc.csv`
-- preserves the original feature logic from prior notebooks
-- adapts grouping to `text_type` (`original` vs `rewrite`)
-- adds spaCy POS-tag percentages for adjectives, nouns, verbs, and adverbs
-- writes the final feature table to `output/combined_long_liwc_lingfeat.csv`
-
-## Reproducibility notes
-
-- Keep raw data immutable.
-- Record major preprocessing decisions in your analysis notes/notebooks.
-- Avoid committing large generated files unless needed for a publication snapshot.
-
-## Status
-
-Minimal scaffold completed.
+For questions or issues, contact l.j.pfruender@tilburguniversity.edu

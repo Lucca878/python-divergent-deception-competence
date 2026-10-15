@@ -1,4 +1,4 @@
-name: rq2-nlp
+name: deception-competence
 channels:
   - conda-forge
   - defaults
